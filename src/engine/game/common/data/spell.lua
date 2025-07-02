@@ -22,6 +22,7 @@
 ---
 ---@field cast_anim string      The name of the animation set when the spell is cast - defaults to "battle/spell"
 ---@field select_anim string    The name of the animation set when the spell is selected - defaults to "battle/spell_ready"
+---@field cast_sound string     The id of the sound to play upon casting the spell - defaults to nil
 ---
 ---@overload fun(...) : Spell
 local Spell = Class()
@@ -98,6 +99,12 @@ function Spell:getSelectAnimation()
     return self.select_anim or "battle/spell_ready"
 end
 
+--- *(Override)* Gets the sound id to play upon casting the spell (rather than in :onCast, if the animation is a bit long)
+--- @return string
+function Spell:getCastSound()
+    return self.cast_sound
+end
+
 --- *(Override)* Called when the spell is cast \
 --- The code for the effects of the spell (such as damage or healing) should go into this function
 ---@param user PartyBattler
@@ -113,6 +120,9 @@ end
 ---@param target Battler[]|EnemyBattler|PartyBattler|EnemyBattler[]|PartyBattler[]
 function Spell:onStart(user, target)
     Game.battle:battleText(self:getCastMessage(user, target))
+    if self:getCastSound() and type(self:getCastSound()) == "string" then
+        Assets.playSound(self:getCastSound())
+    end
     user:setAnimation(self:getCastAnimation(), function()
         Game.battle:clearActionIcon(user)
         local result = self:onCast(user, target)
